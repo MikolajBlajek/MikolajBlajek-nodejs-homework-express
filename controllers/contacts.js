@@ -33,7 +33,7 @@ const update = async (req, res) => {
 
   try {
     const updatedContact = await Contact.findByIdAndUpdate(
-      id,
+      { _id: id, owner: req.user.id },
       { name, email, phone, favorite },
       { new: true }
     );
@@ -52,7 +52,7 @@ const getById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const contact = await Contact.findById(id);
+    const contact = await Contact.findOne({ _id: id, owner: req.user.id });
 
     if (!contact) {
       return res.status(404).json({ message: 'Contact not found' });
@@ -68,7 +68,7 @@ const remove = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedContact = await Contact.findByIdAndRemove(id);
+    const deletedContact = await Contact.findOneAndRemove({ _id: id, owner: req.user.id });
 
     if (!deletedContact) {
       return res.status(404).json({ message: 'Contact not found' });

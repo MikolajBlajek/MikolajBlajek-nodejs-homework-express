@@ -39,7 +39,7 @@ const login = async (req, res, next) => {
     if (!user || !bcrypt.compareSync(password, user.password)) {
       return res.status(401).json({ message: 'Email or password is wrong' });
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
     user.token = token;
     await user.save();
     res.status(200).json({ token, user: { email: user.email, subscription: user.subscription } });
@@ -50,11 +50,7 @@ const login = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    const userId = req.user._id;
-    const user = await User.findById(userId);
-    if (!user || user.token !== req.token) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
+    const user = req.user;
     user.token = null;
     await user.save();
     res.status(204).end();
@@ -65,10 +61,6 @@ const logout = async (req, res, next) => {
  
 const getCurrentUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select('email subscription');
-    if (!user) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
     res.status(200).json(user);
   } catch (error) {
     next(error);
