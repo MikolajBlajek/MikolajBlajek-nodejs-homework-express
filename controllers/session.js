@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const User = require('../models/users');
+const gravatar = require('gravatar');
 
 const userSchema = Joi.object({
   email: Joi.string().email().required(),
@@ -19,10 +20,19 @@ const signup = async (req, res, next) => {
     if (existingUser) {
       return res.status(409).json({ message: 'Email in use' });
     }
+
     const hashedPassword = await bcrypt.hash(password, 12);
-    const newUser = new User({ email, password: hashedPassword });
+    const avatarURL = gravatar.url(email);
+    const newUser = new User({ email, password: hashedPassword, avatarURL });
     await newUser.save();
-    res.status(201).json({ user: { email: newUser.email, subscription: newUser.subscription } });
+
+    res.status(201).json({
+      user: {
+        email: newUser.email,
+        subscription: newUser.subscription,
+        avatarURL: newUser.avatarURL,
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -46,7 +56,7 @@ const login = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-}; 
+};
 
 const logout = async (req, res, next) => {
   try {
@@ -58,13 +68,13 @@ const logout = async (req, res, next) => {
     next(error);
   }
 };
- 
+
 const getCurrentUser = async (req, res, next) => {
   try {
-    res.status(200).json(user);
+    res.status(200).json(req.user);
   } catch (error) {
     next(error);
   }
-}; 
+};
 
 module.exports = { signup, login, logout, getCurrentUser };
