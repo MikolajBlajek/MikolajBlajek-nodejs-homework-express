@@ -1,8 +1,11 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const Joi = require('joi');
-const User = require('../models/users');
-const gravatar = require('gravatar');
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import Joi from 'joi';
+import gravatar from 'gravatar';
+import User from '../models/users';
+import { sendVerificationEmail } from '../modules/email.js'; 
+
+//--------------zmiana na importy 
 
 const userSchema = Joi.object({
   email: Joi.string().email().required(),
@@ -22,10 +25,16 @@ const signup = async (req, res, next) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    const avatarURL = gravatar.url(email);
+    const avatarURL = gravatar.url(email); 
+    const verificationToken = uuidv4();  //---<------
     const newUser = new User({ email, password: hashedPassword, avatarURL });
-    await newUser.save();
-
+    await newUser.save(); 
+//---------------------------------------kod na dole----
+    const verificationLink = `http://yourdomain.com/api/users/verify/${verificationToken}`;
+    const html = `Please verify your email by clicking the following link: <a href="${verificationLink}">${verificationLink}</a>`;
+ 
+    await sendVerificationEmail(html, 'Verify your email', email); 
+//----------------------------------------------------------------
     res.status(201).json({
       user: {
         email: newUser.email,
@@ -37,8 +46,9 @@ const signup = async (req, res, next) => {
     next(error);
   }
 };
-
-const login = async (req, res, next) => {
+ 
+//----------export
+export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const { error } = userSchema.validate({ email, password });
@@ -58,7 +68,7 @@ const login = async (req, res, next) => {
   }
 };
 
-const logout = async (req, res, next) => {
+export const logout = async (req, res, next) => {
   try {
     const user = req.user;
     user.token = null;
@@ -69,7 +79,7 @@ const logout = async (req, res, next) => {
   }
 };
 
-const getCurrentUser = async (req, res, next) => {
+export const getCurrentUser = async (req, res, next) => {
   try {
     res.status(200).json(req.user);
   } catch (error) {
@@ -77,4 +87,4 @@ const getCurrentUser = async (req, res, next) => {
   }
 };
 
-module.exports = { signup, login, logout, getCurrentUser };
+// module.exports = { signup, login, logout, getCurrentUser };

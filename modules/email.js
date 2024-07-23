@@ -1,5 +1,9 @@
-const nodemailer = require("nodemailer"); 
-require('dotenv').config();
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';  
+
+//--------------zmiana na importy
+
+dotenv.config();
 
 const { M_USER, M_PASS } = process.env;
 
@@ -13,7 +17,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const main = async (html, subject, to) => {
+export const sendVerificationEmail = async (html, subject, to) => {
   try {
     const info = await transporter.sendMail({
       from: '"Maddison Foo Koch 👻" <hw06test@gmail.com>', 
@@ -28,8 +32,8 @@ const main = async (html, subject, to) => {
   }
 }
 
-main('Hello, this is a test email!', 'Test Subject', 'mikolajblajek@gmail.com')
-  .catch(console.error);
+// main('Hello, this is a test email!', 'Test Subject', 'mikolajblajek@gmail.com')
+//   .catch(console.error);
 
-module.exports = main;
+// module.exports = main;
  
